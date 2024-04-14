@@ -1,45 +1,51 @@
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class Main {
-    static StringBuilder sb = new StringBuilder();
+    static List<String> list = new ArrayList<>();
     public static void main(String[] args) {
-        direct("Games");
-        direct("Games/src");
-        direct("Games/res");
-        direct("Games/savegames");
-        direct("Games/temp");
-        direct("Games/src/main");
-        direct("Games/src/test");
-        file("Games/src/main/Main.java");
-        file("Games/src/main/Utils.java");
-        direct("Games/res/drawables");
-        direct("Games/res/vectors");
-        direct("Games/res/icons");
-        file("Games/temp/temp.txt");
-        try (FileWriter fw = new FileWriter("Games/temp/temp.txt")) {
-            fw.write(sb.toString());
+        GameProgress gp = new GameProgress(10, 6, 22, 12);
+        GameProgress gp1 = new GameProgress(2, 9, 7, 20);
+        GameProgress gp2 = new GameProgress(40, 17, 31, 16);
+        saveGame("C://Users/anast/IdeaProjects/untitled25/Games/savegames/save1.dat", gp);
+        saveGame("C://Users/anast/IdeaProjects/untitled25/Games/savegames/save2.dat", gp1);
+        saveGame("C://Users/anast/IdeaProjects/untitled25/Games/savegames/save3.dat", gp2);
+        zipFiles("C://Users/anast/IdeaProjects/untitled25/Games/savegames/zip.zip", list);
+    }
+
+    public static void saveGame(String fileName, GameProgress gp) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName))) {
+            oos.writeObject(gp);
+            list.add(fileName);
         } catch (IOException e) {
             e.getMessage();
         }
     }
 
-    public static void direct(String name) {
-        if (new File(name).mkdir()) {
-            sb.append("Создана директория ").append(name).append('\n');
-        } else {
-            sb.append("Создание неуспешно \n");
-        }
-    }
-
-    public static void file(String name) {
-        try {
-            if (new File(name).createNewFile()) {
-                sb.append("Создана директория ").append(name).append('\n');
-            } else {
-                sb.append("Создание неуспешно \n");
+    public static void zipFiles(String zipName, List<String> fileNames) {
+        try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipName))) {
+            for (String fileName : fileNames) {
+                try (FileInputStream fis = new FileInputStream(fileName)) {
+                    ZipEntry entry = new ZipEntry(fileName);
+                    zos.putNextEntry(entry);
+                    int i;
+                    byte[] buffer = new byte[1024];
+                    while ((i = fis.read()) != -1) {
+                        zos.write(buffer, 0, i);
+                    }
+                    zos.closeEntry();
+                } catch (IOException e) {
+                    e.getMessage();
+                }
             }
         } catch (IOException e) {
             e.getMessage();
+        }
+        for (String fileName : fileNames) {
+            new File(fileName).delete();
         }
     }
 }
